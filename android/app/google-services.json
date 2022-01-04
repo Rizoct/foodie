@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "782989826329",
+    "firebase_url": "https://login-firebase-737c3.firebaseio.com",
+    "project_id": "login-firebase-737c3",
+    "storage_bucket": "login-firebase-737c3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782989826329:android:c0ed4d70bddfc6de6acd88",
+        "android_client_info": {
+          "package_name": "com.example.login_firebase_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "782989826329-igrj249plu6mb3eqv3rmfu2htcmefl3m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAmXQv6khn19rnBZsueADPk1nPLXTvAmM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "782989826329-igrj249plu6mb3eqv3rmfu2htcmefl3m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782989826329:android:d754cd973c91749b6acd88",
+        "android_client_info": {
+          "package_name": "monkeycompanny.foodie_mobile_programming"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "782989826329-igrj249plu6mb3eqv3rmfu2htcmefl3m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAmXQv6khn19rnBZsueADPk1nPLXTvAmM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "782989826329-igrj249plu6mb3eqv3rmfu2htcmefl3m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
