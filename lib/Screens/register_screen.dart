@@ -1,161 +1,303 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:login_firebase_flutter/model/user_model.dart';
+import 'package:login_firebase_flutter/screens/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:login_firebase_flutter/Component/button.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
-import '../constants.dart';
-import 'Login_Screen.dart';
+class RegistrationScreen extends StatefulWidget {
+  const RegistrationScreen({Key? key}) : super(key: key);
 
-class SignupScreen extends StatefulWidget {
   @override
-  _SignupScreenState createState() => _SignupScreenState();
+  _RegistrationScreenState createState() => _RegistrationScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
-  final formkey = GlobalKey<FormState>();
+class _RegistrationScreenState extends State<RegistrationScreen> {
   final _auth = FirebaseAuth.instance;
-  String email = '';
-  String password = '';
-  bool isloading = false;
+
+  // string for displaying the error Message
+  String? errorMessage;
+
+
+  // our form key
+  final _formKey = GlobalKey<FormState>();
+  // editing Controller
+  final firstNameEditingController = new TextEditingController();
+  final secondNameEditingController = new TextEditingController();
+  final emailEditingController = new TextEditingController();
+  final passwordEditingController = new TextEditingController();
+  final confirmPasswordEditingController = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    //first name field
+    final firstNameField = TextFormField(
+        autofocus: false,
+        controller: firstNameEditingController,
+        keyboardType: TextInputType.name,
+        validator: (value) {
+          RegExp regex = new RegExp(r'^.{3,}$');
+          if (value!.isEmpty) {
+            return ("First Name cannot be Empty");
+          }
+          if (!regex.hasMatch(value)) {
+            return ("Enter Valid name(Min. 3 Character)");
+          }
+          return null;
+        },
+        onSaved: (value) {
+          firstNameEditingController.text = value!;
+        },
+        textInputAction: TextInputAction.next,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.account_circle),
+          contentPadding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+          hintText: "First Name",
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ));
+
+    //second name field
+    final secondNameField = TextFormField(
+        autofocus: false,
+        controller: secondNameEditingController,
+        keyboardType: TextInputType.name,
+        validator: (value) {
+          if (value!.isEmpty) {
+            return ("Second Name cannot be Empty");
+          }
+          return null;
+        },
+        onSaved: (value) {
+          secondNameEditingController.text = value!;
+        },
+        textInputAction: TextInputAction.next,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.account_circle),
+          contentPadding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+          hintText: "Second Name",
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ));
+
+    //email field
+    final emailField = TextFormField(
+        autofocus: false,
+        controller: emailEditingController,
+        keyboardType: TextInputType.emailAddress,
+        validator: (value) {
+          if (value!.isEmpty) {
+            return ("Please Enter Your Email");
+          }
+          // reg expression for email validation
+          if (!RegExp("^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
+              .hasMatch(value)) {
+            return ("Please Enter a valid email");
+          }
+          return null;
+        },
+        onSaved: (value) {
+          firstNameEditingController.text = value!;
+        },
+        textInputAction: TextInputAction.next,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.mail),
+          contentPadding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+          hintText: "Email",
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ));
+
+    //password field
+    final passwordField = TextFormField(
+        autofocus: false,
+        controller: passwordEditingController,
+        obscureText: true,
+        validator: (value) {
+          RegExp regex = new RegExp(r'^.{6,}$');
+          if (value!.isEmpty) {
+            return ("Password is required for login");
+          }
+          if (!regex.hasMatch(value)) {
+            return ("Enter Valid Password(Min. 6 Character)");
+          }
+        },
+        onSaved: (value) {
+          firstNameEditingController.text = value!;
+        },
+        textInputAction: TextInputAction.next,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.vpn_key),
+          contentPadding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+          hintText: "Password",
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ));
+
+    //confirm password field
+    final confirmPasswordField = TextFormField(
+        autofocus: false,
+        controller: confirmPasswordEditingController,
+        obscureText: true,
+        validator: (value) {
+          if (confirmPasswordEditingController.text !=
+              passwordEditingController.text) {
+            return "Password don't match";
+          }
+          return null;
+        },
+        onSaved: (value) {
+          confirmPasswordEditingController.text = value!;
+        },
+        textInputAction: TextInputAction.done,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.vpn_key),
+          contentPadding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+          hintText: "Confirm Password",
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ));
+
+    //signup button
+    final signUpButton = Material(
+      elevation: 5,
+      borderRadius: BorderRadius.circular(30),
+      color: Colors.redAccent,
+      child: MaterialButton(
+          padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+          minWidth: MediaQuery.of(context).size.width,
+          onPressed: () {
+            signUp(emailEditingController.text, passwordEditingController.text);
+          },
+          child: Text(
+            "SignUp",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+          )),
+    );
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.black,size: 30,),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(Icons.arrow_back, color: Colors.red),
+          onPressed: () {
+            // passing this to our root
+            Navigator.of(context).pop();
+          },
         ),
       ),
-      body: isloading
-          ? Center(
-        child: CircularProgressIndicator(),
-      )
-          : Form(
-        key: formkey,
-        child: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle.light,
-          child: Stack(
-            children: [
-              Container(
-                height: double.infinity,
-                width: double.infinity,
-                color: Colors.grey[200],
-                child: SingleChildScrollView(
-                  padding:
-                  EdgeInsets.symmetric(horizontal: 25, vertical: 120),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Hero(
-                        tag: '1',
-                        child: Text(
-                          "Sign up",
-                          style: TextStyle(
-                              fontSize: 30,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      SizedBox(height: 30),
-                      TextFormField(
-                        keyboardType: TextInputType.emailAddress,
-                        onChanged: (value) {
-                          email = value.toString().trim();
-                        },
-                        validator: (value) => (value!.isEmpty)
-                            ? ' Please enter email'
-                            : null,
-                        textAlign: TextAlign.center,
-                        decoration: kTextFieldDecoration.copyWith(
-                          hintText: 'Enter Your Email',
-                          prefixIcon: Icon(
-                            Icons.email,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 30),
-                      TextFormField(
-                        obscureText: true,
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return "Please enter Password";
-                          }
-                        },
-                        onChanged: (value) {
-                          password = value;
-                        },
-                        textAlign: TextAlign.center,
-                        decoration: kTextFieldDecoration.copyWith(
-                            hintText: 'Choose a Password',
-                            prefixIcon: Icon(
-                              Icons.lock,
-                              color: Colors.black,
-                            )),
-                      ),
-                      SizedBox(height: 80),
-                      LoginSignupButton(
-                        title: 'Register',
-                        ontapp: () async {
-                          if (formkey.currentState!.validate()) {
-                            setState(() {
-                              isloading = true;
-                            });
-                            try {
-                              await _auth.createUserWithEmailAndPassword(
-                                  email: email, password: password);
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: Colors.blueGrey,
-                                  content: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                        'Sucessfully Register.You Can Login Now'),
-                                  ),
-                                  duration: Duration(seconds: 5),
-                                ),
-                              );
-                              Navigator.of(context).pop();
-
-                              setState(() {
-                                isloading = false;
-                              });
-                            } on FirebaseAuthException catch (e) {
-                              showDialog(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title:
-                                  Text(' Ops! Registration Failed'),
-                                  content: Text('${e.message}'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(ctx).pop();
-                                      },
-                                      child: Text('Okay'),
-                                    )
-                                  ],
-                                ),
-                              );
-                            }
-                            setState(() {
-                              isloading = false;
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(36.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    SizedBox(
+                        height: 180,
+                        child: Image.asset(
+                          "assets/images/1.png",
+                          fit: BoxFit.contain,
+                        )),
+                    SizedBox(height: 45),
+                    firstNameField,
+                    SizedBox(height: 20),
+                    secondNameField,
+                    SizedBox(height: 20),
+                    emailField,
+                    SizedBox(height: 20),
+                    passwordField,
+                    SizedBox(height: 20),
+                    confirmPasswordField,
+                    SizedBox(height: 20),
+                    signUpButton,
+                    SizedBox(height: 15),
+                  ],
                 ),
-              )
-            ],
+              ),
+            ),
           ),
         ),
       ),
     );
+  }
+  void signUp(String email, String password) async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        await _auth
+            .createUserWithEmailAndPassword(email: email, password: password)
+            .then((value) => {postDetailsToFirestore()})
+            .catchError((e) {
+          Fluttertoast.showToast(msg: e!.message);
+        });
+      } on FirebaseAuthException catch (error) {
+        switch (error.code) {
+          case "invalid-email":
+            errorMessage = "Your email address appears to be malformed.";
+            break;
+          case "wrong-password":
+            errorMessage = "Your password is wrong.";
+            break;
+          case "user-not-found":
+            errorMessage = "User with this email doesn't exist.";
+            break;
+          case "user-disabled":
+            errorMessage = "User with this email has been disabled.";
+            break;
+          case "too-many-requests":
+            errorMessage = "Too many requests";
+            break;
+          case "operation-not-allowed":
+            errorMessage = "Signing in with Email and Password is not enabled.";
+            break;
+          default:
+            errorMessage = "An undefined Error happened.";
+        }
+        Fluttertoast.showToast(msg: errorMessage!);
+        print(error.code);
+      }
+    }
+  }
+  postDetailsToFirestore() async {
+    // calling our firestore
+    // calling our user model
+    // sedning these values
+
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+    User? user = _auth.currentUser;
+
+    UserModel userModel = UserModel();
+
+    // writing all the values
+    userModel.email = user!.email;
+    userModel.uid = user.uid;
+    userModel.firstName = firstNameEditingController.text;
+    userModel.secondName = secondNameEditingController.text;
+    userModel.img = "https://firebasestorage.googleapis.com/v0/b/login-firebase-737c3.appspot.com/o/defaultavatar.jpg?alt=media&token=22bbf844-948d-4003-99d5-c350406d3236";
+
+    await firebaseFirestore
+        .collection("users")
+        .doc(user.uid)
+        .set(userModel.toMap());
+    Fluttertoast.showToast(msg: "Account created successfully :) ");
+
+    Navigator.pushAndRemoveUntil(
+        (context),
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false);
   }
 }
