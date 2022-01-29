@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:login_firebase_flutter/Component/generate_material_color.dart';
 import 'package:login_firebase_flutter/Screens/home_screen.dart';
@@ -48,7 +49,7 @@ class _UserProfile extends State<UserProfile> {
                 GestureDetector(
                   onTap: () async {
                     XFile? image = await ImagePicker()
-                        .pickImage(source: ImageSource.camera);
+                        .pickImage(source: ImageSource.gallery);
                   },
                   child: CircleAvatar(
                     radius: 100.0,

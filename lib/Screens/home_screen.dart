@@ -9,6 +9,9 @@ import 'package:login_firebase_flutter/Component/generate_material_color.dart';
 import 'package:login_firebase_flutter/Screens/booking_test.dart';
 import 'package:login_firebase_flutter/Screens/booking_user.dart';
 import 'package:login_firebase_flutter/Screens/menucategory_screen.dart';
+import 'package:login_firebase_flutter/Screens/pending_user.dart';
+import 'package:login_firebase_flutter/Screens/rejectcancel_screen.dart';
+import 'package:login_firebase_flutter/Screens/search_screen.dart';
 import 'package:login_firebase_flutter/Screens/userprofile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -52,11 +55,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => BookingTest(
-                resto_name: doc["nama_resto"],
-                resto_desc: doc["desc_resto"],
-                resto_img: doc["img"],
-                rid: doc["rid"].toString(),
-                uid: loggedInUser.uid,
+                resto_name: doc["restoname"],
+                resto_desc: doc["restotype"],
+                resto_img: doc["restoimg"],
+                rid: doc["rid"],
+                loggedInUser: loggedInUser,
               )),
             );
           },
@@ -68,10 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 maxWidth: 120,
                 maxHeight: 200,
               ),
-              child: Image.network(doc["img"], fit: BoxFit.cover),
+              child: Image.network(doc["restoimg"], fit: BoxFit.cover),
             ),
-            title: Text(doc["nama_resto"]),
-            subtitle: Text(doc["desc_resto"]),
+            title: Text(doc["restoname"]),
+            subtitle: Text(doc["restotype"]),
           ),
         );
       },
@@ -92,18 +95,11 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             IconButton(
                 onPressed: () {
-                  if (customIcon.icon == Icons.search) {
-                    customIcon = Icon(Icons.cancel);
-                    customSearchBar = const TextField(
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16.0,
-                      ),
-                    );
-                  } else {
-                    customIcon = Icon(Icons.search);
-                    customSearchBar = Text("Foodie");
-                  }
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SearchScreen(userModel: loggedInUser,),
+                      ));
                 },
                 icon: customIcon)
           ],
@@ -142,7 +138,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => BookingUser()),
+                              builder: (context) => PendingUser(uid: loggedInUser.uid,)),
+                        );
+                      },
+                      child: ListTile(
+                        title: Text("Pending"),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => BookingUser(uid: loggedInUser.uid,)),
                         );
                       },
                       child: ListTile(
@@ -154,7 +162,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => HistoryUser()),
+                              builder: (context) => RejectCancel(uid: loggedInUser.uid)),
+                        );
+                      },
+                      child: ListTile(
+                        title: Text("Cancelled/Rejected"),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HistoryUser(uid: loggedInUser.uid)),
                         );
                       },
                       child: ListTile(
@@ -263,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => MenuCategory(kategori: 'Western')),
+                                    builder: (context) => MenuCategory(kategori: 'Western', loggedInUser: loggedInUser,)),
                               );
                             },
                           ),
@@ -309,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => MenuCategory(kategori: 'Japanese')),
+                                    builder: (context) => MenuCategory(kategori: 'Japanese',loggedInUser: loggedInUser)),
                               );
                             },
                           ),
@@ -355,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => MenuCategory(kategori: 'Indonesian')),
+                                    builder: (context) => MenuCategory(kategori: 'Indonesian',loggedInUser: loggedInUser)),
                               );
                             },
                           ),
@@ -407,7 +427,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => MenuCategory(kategori: 'Korean')),
+                                    builder: (context) => MenuCategory(kategori: 'Korean',loggedInUser: loggedInUser)),
                               );
                             },
                           ),
@@ -453,7 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => MenuCategory(kategori: 'Desserts')),
+                                    builder: (context) => MenuCategory(kategori: 'Desserts',loggedInUser: loggedInUser)),
                               );
                             },
                           ),
@@ -499,7 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => MenuCategory(kategori: 'Chinese')),
+                                    builder: (context) => MenuCategory(kategori: 'Chinese',loggedInUser: loggedInUser)),
                               );
                             },
                           ),
@@ -528,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
-                          .collection("restaurants_test")
+                          .collection("restaurant_data")
                           .snapshots(),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) return LinearProgressIndicator();

@@ -4,12 +4,12 @@ import 'package:login_firebase_flutter/Screens/home_screen.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class HistoryUser extends StatefulWidget {
+  String? uid;
 
-
-
-  HistoryUser({Key? key}) : super(key: key);
+  HistoryUser({Key? key, @required this.uid}) : super(key: key);
 
   @override
   _HistoryUser createState() => _HistoryUser();
@@ -24,9 +24,30 @@ class _HistoryUser extends State<HistoryUser>{
         itemCount: snapshot.docs.length,
         itemBuilder: (context, index) {
           final doc = snapshot.docs[index];
-          return ListTile(
-            title: Text(doc["nama_resto"]),
-            subtitle: Text(doc["jumlah"]),
+          return Card(
+            elevation: 5,
+            child: ListTile(
+              title: Padding(
+                padding: EdgeInsets.only(bottom: 5),
+                child: Text(doc["nama_resto"], style: TextStyle(fontSize: 17),),
+              ),
+              subtitle: RichText(
+                text: TextSpan(
+                  style: TextStyle(color: Colors.black, fontSize: 30),
+                  children: [
+                    WidgetSpan(
+                        child: Icon(
+                          Icons.accessibility,
+                          size: 40,
+                        )),
+                    TextSpan(text: doc["jumlah"], style: TextStyle(color: Colors.blue)),
+                    TextSpan(
+                        text: " | Date = " + doc["waktubooking"])
+                  ],
+                ),
+                textScaleFactor: 0.5,
+              ),
+            ),
           );
         },
       );
@@ -50,7 +71,8 @@ class _HistoryUser extends State<HistoryUser>{
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection("restaurants_booking")
-                  .where("status", isEqualTo: true)
+                  .where("uid", isEqualTo: widget.uid)
+                  .where("status", isEqualTo: "finished")
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return LinearProgressIndicator();
