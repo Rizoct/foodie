@@ -4,19 +4,18 @@ import 'package:login_firebase_flutter/Screens/home_screen.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class BookingUser extends StatefulWidget {
+  String? uid;
 
-
-
-  BookingUser({Key? key}) : super(key: key);
+  BookingUser({Key? key, @required this.uid}) : super(key: key);
 
   @override
   _BookingUser createState() => _BookingUser();
 }
 
 class _BookingUser extends State<BookingUser>{
-
   @override
   Widget build(BuildContext context) {
     Widget _buildList(QuerySnapshot snapshot) {
@@ -24,18 +23,41 @@ class _BookingUser extends State<BookingUser>{
         itemCount: snapshot.docs.length,
         itemBuilder: (context, index) {
           final doc = snapshot.docs[index];
-            return ListTile(
-              title: Text(doc["nama_resto"]),
-              subtitle: Text(doc["jumlah"]),
-          );
+            return Card(
+              elevation: 5,
+              child: ListTile(
+                title: Padding(
+                  padding: EdgeInsets.only(bottom: 5),
+                  child: Text(doc["nama_resto"], style: TextStyle(fontSize: 17),),
+                ),
+                subtitle: RichText(
+                  text: TextSpan(
+                    style: TextStyle(color: Colors.black, fontSize: 30),
+                    children: [
+                      WidgetSpan(
+                          child: Icon(
+                            Icons.accessibility,
+                            size: 40,
+                          )),
+                      TextSpan(text: doc["jumlah"], style: TextStyle(color: Colors.blue)),
+                      TextSpan(
+                          text: " | Date = " + doc["waktubooking"])
+                    ],
+                  ),
+                  textScaleFactor: 0.5,
+                ),
+              ),
+            );
         },
       );
     }
 
+
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: generateMaterialColor(Colors.redAccent),
-        title: Text("Bookingan Aktif"),
+        title: const Text("Bookingan Aktif"),
         leading: IconButton(
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () {
@@ -50,7 +72,8 @@ class _BookingUser extends State<BookingUser>{
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection("restaurants_booking")
-                .where("status", isEqualTo: false)
+                .where("uid", isEqualTo: widget.uid)
+                .where("status", isEqualTo: "accepted")
                 .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) return LinearProgressIndicator();
