@@ -3,27 +3,106 @@ import 'package:login_firebase_flutter/Component/generate_material_color.dart';
 import 'package:login_firebase_flutter/Screens/home_screen.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:login_firebase_flutter/Model/user_model.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 
 class BookingTest extends StatefulWidget {
   final String? resto_name;
   final String? resto_desc;
   final String? resto_img;
-  final String? rid;
-  final String? uid;
+  final int rid;
+  UserModel? loggedInUser = UserModel();
 
 
-  BookingTest({Key? key, @required this.resto_name, @required this.resto_desc, @required this.resto_img, @required this.rid, @required this.uid}) : super(key: key);
+  BookingTest({Key? key, @required this.resto_name, @required this.resto_desc, @required this.resto_img, required this.rid, @required this.loggedInUser}) : super(key: key);
 
   @override
   _BookingTest createState() => _BookingTest();
+
 }
 
 class _BookingTest extends State<BookingTest>{
+
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _dateInput = TextEditingController();
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _jumlahController = TextEditingController();
-  
+  DateTime? pickedDate;
+
+  final successSnackBar = const SnackBar(
+    content: Text('Data berhasil diinput'),
+  );
+
+  final errorSnackBar = const SnackBar(
+    content: Text('Data gagal diinput'),
+  );
+
+  void initState(){
+    _dateInput.text = "";
+    super.initState();
+  }
+
   @override
+  String getText() {
+    if (pickedDate == null) {
+      return 'Select DateTime';
+    } else {
+      return DateFormat('dd/MM/yyyy HH:mm').format(pickedDate!);
+    }
+  }
+
+  Future pickDateTime(BuildContext context) async {
+    final date = await pickDate(context);
+    if (date == null) return;
+
+    final time = await pickTime(context);
+    if (time == null) return;
+
+    setState(() {
+      pickedDate = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+      _dateInput.text = getText();
+    });
+
+  }
+
+  Future<DateTime?> pickDate(BuildContext context) async {
+    final initialDate = DateTime.now();
+    final newDate = await showDatePicker(
+      context: context,
+      initialDate: pickedDate ?? initialDate,
+      firstDate: DateTime(DateTime.now().year - 5),
+      lastDate: DateTime(DateTime.now().year + 5),
+    );
+
+    if (newDate == null) return null;
+
+    return newDate;
+  }
+
+  Future<TimeOfDay?> pickTime(BuildContext context) async {
+    final initialTime = TimeOfDay(hour: 9, minute: 0);
+    final newTime = await showTimePicker(
+      context: context,
+      initialTime: pickedDate != null
+          ? TimeOfDay(hour: pickedDate!.hour, minute: pickedDate!.minute)
+          : initialTime,
+    );
+
+    if (newTime == null) return null;
+
+    return newTime;
+  }
+
+
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -32,10 +111,8 @@ class _BookingTest extends State<BookingTest>{
         leading: IconButton(
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
+              Navigator.pop(context);
+
             }),
       ),
       body: ListView(children: [
@@ -134,44 +211,18 @@ class _BookingTest extends State<BookingTest>{
                   builder: (BuildContext context) {
                     return AlertDialog(
                       content: Stack(
-                        overflow: Overflow.visible,
+                        clipBehavior: Clip.none,
                         children: <Widget>[
                           Form(
                             key: _formKey,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                /*Padding(
-                                  padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 5.0),
-                                  child: ElevatedButton(
-                                    child: Text("Select Date"),
-                                    onPressed: (){
-                                      showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime.now(),
-                                          firstDate: DateTime(2021),
-                                          builder: (BuildContext context, Widget ?child){
-                                            return Theme(
-                                              data: ThemeData.dark().copyWith(
-                                                colorScheme: ColorScheme.dark(
-                                                  primary: generateMaterialColor(const Color(0xFFFFE194)),
-                                                  onPrimary: Colors.white,
-                                                  surface: generateMaterialColor(const Color(0xFFFFE194)),
-                                                  onSurface: Colors.black,
-                                                ),
-                                                dialogBackgroundColor:Colors.white,
-                                              ),
-                                              child: child!,
-                                            );
-                                          },
-                                          lastDate: DateTime(2040));
-                                    },
-                                  ),
-                                ),*/
-
                                 Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: TextFormField(
+                                    enabled: false,
+                                    initialValue: widget.loggedInUser!.firstName! + " " + widget.loggedInUser!.secondName!,
                                     decoration: InputDecoration(
                                       hintText: 'Nama'
                                     ),
@@ -186,18 +237,46 @@ class _BookingTest extends State<BookingTest>{
                                     ),
                                   ),
                                 ),
+                                TextField(
+                                  controller: _dateInput, //editing controller of this TextField
+                                  decoration: InputDecoration(
+                                      icon: Icon(Icons.calendar_today), //icon of text field
+                                      labelText: "Enter DateTime" //label text of field
+                                  ),
+                                  readOnly: true,  //set it true, so that user will not able to edit text
+                                  onTap: () async {
+                                    pickDateTime(context);
+                                  },
+                                ),
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: RaisedButton(
+                                  child: ElevatedButton(
                                     child: Text("Submit"),
                                     onPressed: () {
-                                      FirebaseFirestore.instance
-                                        .collection('restaurants_booking')
-                                        .add({'bid': '2', 'jumlah': _jumlahController.text.toString(), 'rid': widget.rid, 'uid': widget.uid});
+                                      try{
+                                        FirebaseFirestore.instance
+                                            .collection('restaurants_booking')
+                                            .add({'bid': '2',
+                                          'jumlah': _jumlahController.text.toString(),
+                                          'rid': widget.rid,
+                                          'waktubooking': pickedDate.toString(),
+                                          'status': 'pending',
+                                          'namauser': widget.loggedInUser!.firstName! + " " + widget.loggedInUser!.secondName!,
+                                          'uid': widget.loggedInUser!.uid,
+                                          'nama_resto': widget.resto_name
+
+                                        });
+                                        ScaffoldMessenger.of(context).showSnackBar(successSnackBar)
+                                        ;
+                                      }catch (e){
+                                        print(e.toString());
+                                        ScaffoldMessenger.of(context).showSnackBar(errorSnackBar);
+                                      }
 
                                     },
                                   ),
-                                )
+                                ),
+
                               ],
                             ),
                           ),
