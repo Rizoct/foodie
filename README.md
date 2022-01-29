@@ -1,4 +1,4 @@
-# login_firebase_flutter
+# Foodie Dining Apps
 
 A new Flutter project.
 
